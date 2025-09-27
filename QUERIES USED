@@ -1,0 +1,253 @@
+The SQL commands provided in this Presentation demonstrate how to create a relational database schema, insert data, and then apply Ranking, Aggregate, Navigation, and Distribution functions to derive meaningful business insights.
+Microsoft Windows [Version 10.0.26100.6584]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\Users\Daniel>sqlplus
+
+SQL*Plus: Release 11.2.0.2.0 Production on Fri Sep 26 13:20:22 2025
+
+Copyright (c) 1982, 2010, Oracle.  All rights reserved.
+
+Enter user-name: assignment1
+Enter password:
+
+Connected to:
+Oracle Database 11g Express Edition Release 11.2.0.2.0 - Production
+
+
+SQL> create table CUSTOMER(
+  2  Customer_id VARCHAR(50) PRIMARY KEY,
+  3  Name VARCHAR(50),
+  4  Region VARCHAR(50),
+ 
+ Table created.
+
+SQL> create table PRODUCTS(
+  2  Product_id VARCHAR(50) PRIMARY KEY,
+  3  Name VARCHAR(50),
+  4  Category VARCHAR(50),
+ 
+ Table created.
+
+SQL> create table TRANSACTIONS(
+  2  Transaction_id VARCHAR(50) PRIMARY KEY,
+  3  Customer_id VARCHAR(50),
+  4  Product_id VARCHAR(50),
+  5  Sale_date VARCHAR(50),
+  6  Amount VARCHAR(50),
+  7  FOREIGN KEY(Customer_id) REFERENCES CUSTOMER(Customer_id),
+  8  FOREIGN KEY(Product_id) REFERENCES PRODUCTS(Product_id));
+ 
+ Table created.
+
+//In the queries above we created three tables : Customer, Product and Transactions inorder to establish central dataset that will be used in sales analysis and sales transactions
+
+SQL> insert into CUSTOMER(Customer_id, Name, Region) values ('1001', 'John', 'KIGALI');
+
+1 row created.
+
+SQL> insert into CUSTOMER(Customer_id, Name, Region) values ('1002', 'Doe', 'Kenya');
+
+1 row created.
+
+SQL> insert into CUSTOMER(Customer_id, Name, Region) values ('1003', 'Daniel', 'Rwanda');
+
+1 row created.
+
+SQL> insert into PRODUCTS(Product_id, Name, Category) values ('2001', 'coffee', 'beverage');
+
+1 row created.
+
+SQL> insert into PRODUCTS(Product_id, Name, Category) values ('2002', 'Fanta', 'drinks');
+
+1 row created.
+
+SQL> insert into PRODUCTS(Product_id, Name, Category) values ('2003', 'Peach', 'fruits');
+
+1 row created.
+
+SQL> insert into TRANSACTIONS(Transaction_id, Customer_id, Product_id, Sale_date, Amount) values ('3001', '1001', '2001', '2024-01-25', '25000');
+
+1 row created.
+
+SQL> insert into TRANSACTIONS(Transaction_id, Customer_id, Product_id, Sale_date, Amount) values ('3002', '1002', '2002', '2024-01-26', '30000');
+
+1 row created.
+
+SQL> insert into TRANSACTIONS(Transaction_id, Customer_id, Product_id, Sale_date, Amount) values ('3003', '1003', '2003', '2024-01-27', '35000');
+
+1 row created.
+
+// these queries were used in the insertion of the data.
+
+SQL> SELECT c.Customer_id,
+  2  c.Name as Customer_name,
+  3  SUM(t.Amount) as Total_revenue,
+  4  ROW_NUMBER() OVER (ORDER BY SUM(t.Amount)DESC) as Row_num,
+  5  RANK() OVER (ORDER BY SUM(t.Amount)DESC) as Rank_num,
+  6  DENSE_RANK() OVER (ORDER BY SUM(t.Amount)DESC) as Dense_rank_num,
+  7  PERCENT_RANK() OVER (ORDER BY SUM(t.Amount)DESC) as Percent_rank_num FROM CUSTOMER c JOIN TRANSACTIONS t ON c.Customer_id = t.Customer_id GROUP BY c.Customer_id, c.Name;
+
+CUSTOMER_ID
+--------------------------------------------------
+CUSTOMER_NAME                                      TOTAL_REVENUE    ROW_NUM
+-------------------------------------------------- ------------- ----------
+  RANK_NUM DENSE_RANK_NUM PERCENT_RANK_NUM
+---------- -------------- ----------------
+1003
+Daniel                                                     35000         1
+         1              1                0
+
+1002
+Doe                                                        30000         2
+         2              2               .5
+
+CUSTOMER_ID
+--------------------------------------------------
+CUSTOMER_NAME                                      TOTAL_REVENUE    ROW_NUM
+-------------------------------------------------- ------------- ----------
+  RANK_NUM DENSE_RANK_NUM PERCENT_RANK_NUM
+---------- -------------- ----------------
+
+1001
+John                                                       25000         3
+         3              3                1
+
+//This query assigns different types of ranks to customers based on revenue.it identify the top customers by revenue and compare their relative performance.As we can see the query ranked daniel high because  he purchased high priced product.
+
+SQL> SELECT t.Customer_id,
+  2  t.Sale_date,
+  3  SUM(t.Amount) OVER (PARTITION BY t.Customer_id ORDER BY t.Sale_date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) as running_total_rows,
+  4  SUM(t.Amount) OVER (PARTITION BY t.Customer_id ORDER BY t.Sale_date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) as running_total_range,
+  5  AVG(t.Amount) OVER (PARTITION BY t.Customer_id ORDER BY t.Sale_date ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) as moving_avg,
+  6  MIN(t.Amount) OVER (PARTITION BY t.Customer_id ORDER BY t.Sale_date) as min_amount,
+  7  MAX(t.Amount) OVER (PARTITION BY t.Customer_id ORDER BY t.sale_date) as max_amount FROM TRANSACTIONS t;
+
+CUSTOMER_ID
+--------------------------------------------------
+SALE_DATE                                          RUNNING_TOTAL_ROWS
+-------------------------------------------------- ------------------
+RUNNING_TOTAL_RANGE MOVING_AVG
+------------------- ----------
+MIN_AMOUNT
+--------------------------------------------------
+MAX_AMOUNT
+--------------------------------------------------
+1001
+2024-01-25                                                      25000
+              25000      25000
+
+CUSTOMER_ID
+--------------------------------------------------
+SALE_DATE                                          RUNNING_TOTAL_ROWS
+-------------------------------------------------- ------------------
+RUNNING_TOTAL_RANGE MOVING_AVG
+------------------- ----------
+MIN_AMOUNT
+--------------------------------------------------
+MAX_AMOUNT
+--------------------------------------------------
+25000
+25000
+
+
+CUSTOMER_ID
+--------------------------------------------------
+SALE_DATE                                          RUNNING_TOTAL_ROWS
+-------------------------------------------------- ------------------
+RUNNING_TOTAL_RANGE MOVING_AVG
+------------------- ----------
+MIN_AMOUNT
+--------------------------------------------------
+MAX_AMOUNT
+--------------------------------------------------
+1002
+2024-01-26                                                      30000
+              30000      30000
+
+CUSTOMER_ID
+--------------------------------------------------
+SALE_DATE                                          RUNNING_TOTAL_ROWS
+-------------------------------------------------- ------------------
+RUNNING_TOTAL_RANGE MOVING_AVG
+------------------- ----------
+MIN_AMOUNT
+--------------------------------------------------
+MAX_AMOUNT
+--------------------------------------------------
+30000
+30000
+
+
+CUSTOMER_ID
+--------------------------------------------------
+SALE_DATE                                          RUNNING_TOTAL_ROWS
+-------------------------------------------------- ------------------
+RUNNING_TOTAL_RANGE MOVING_AVG
+------------------- ----------
+MIN_AMOUNT
+--------------------------------------------------
+MAX_AMOUNT
+--------------------------------------------------
+1003
+2024-01-27                                                      35000
+              35000      35000
+
+CUSTOMER_ID
+--------------------------------------------------
+SALE_DATE                                          RUNNING_TOTAL_ROWS
+-------------------------------------------------- ------------------
+RUNNING_TOTAL_RANGE MOVING_AVG
+------------------- ----------
+MIN_AMOUNT
+--------------------------------------------------
+MAX_AMOUNT
+--------------------------------------------------
+35000
+35000
+
+// Aggregate: SUM(), AVG(), MIN(), MAX() with frame comparisons (ROWS vs RANGE) Use case: Running totals & trends.This computes running totals, moving averages, and min/max per customer.
+
+SQL> SELECT t.Customer_id,
+  2  t.Sale_date,
+  3  t.Amount,
+  4   LAG(t.Amount, 1) OVER (PARTITION BY t.Customer_id ORDER BY t.Sale_date) AS prev_amount,
+  5  LEAD(t.Amount, 1) OVER (PARTITION BY t.Customer_id ORDER BY t.Sale_date) AS next_amount,
+  6  CASE WHEN LAG(t.Amount, 1) OVER (PARTITION BY t.Customer_id ORDER BY t.Sale_date) IS NULL THEN NULL ELSE ROUND( (t.Amount - LAG(t.Amount, 1) OVER (PARTITION BY t.Customer_id ORDER BY t.Sale_date)) * 100  / NULLIF(LAG(t.Amount, 1) OVER (PARTITION BY t.Customer_id ORDER BY t.Sale_date),0), 2) END AS growth_percent FROM TRANSACTIONS t;
+CASE WHEN LAG(t.Amount, 1) OVER (PARTITION BY t.Customer_id ORDER BY t.Sale_date) IS NULL THEN NULL ELSE ROUND( (t.Amount - LAG(t.Amount, 1) OVER (PARTITION BY t.Customer_id ORDER BY t.Sale_date)) * 100  / NULLIF(LAG(t.Amount, 1) OVER (PARTITION BY t.Customer_id ORDER BY t.Sale_date),0), 2) END AS growth_percent FROM TRANSACTIONS t;
+
+//Navigation: LAG(), LEAD(), growth % calculations Use case:Period-to-period analysis.
+The following query enables us to track customer’s purchases both Previous and next amounts per customer (LAG and LEAD),which enables us to calculate the Growth % compared to the previous period.
+
+SQL> SELECT c.Customer_id,
+  2  c.Name,
+  3  SUM(t.Amount) AS total_revenue,
+  4  NTILE(4) OVER (ORDER BY SUM(t.Amount) DESC) AS revenue_quartile,
+  5  CUME_DIST() OVER (ORDER BY SUM(t.Amount) DESC) AS cumulative_distribution FROM CUSTOMER c JOIN TRANSACTIONS t ON c.Customer_id = t.Customer_id GROUP BY c.Customer_id, c.Name;
+
+CUSTOMER_ID
+--------------------------------------------------
+NAME                                               TOTAL_REVENUE
+-------------------------------------------------- -------------
+REVENUE_QUARTILE CUMULATIVE_DISTRIBUTION
+---------------- -----------------------
+1003
+Daniel                                                     35000
+               1              .333333333
+
+1002
+Doe                                                        30000
+               2              .666666667
+
+CUSTOMER_ID
+--------------------------------------------------
+NAME                                               TOTAL_REVENUE
+-------------------------------------------------- -------------
+REVENUE_QUARTILE CUMULATIVE_DISTRIBUTION
+---------------- -----------------------
+
+1001
+John                                                       25000
+               3                       1
+
+// Distribution: NTILE(4), CUME_DIST() Use case: Customer segmentation.this query enables us to  split customers into quartiles (NTILE(4)) based on revenue which shows their cumulative distribution (CUME_DIST()).
