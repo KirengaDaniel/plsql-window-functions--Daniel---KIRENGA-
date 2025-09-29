@@ -37,7 +37,8 @@ In our Database we have three tables. Those are : Customers table, Products Tabl
 <img width="1365" height="767" alt="screenshot4 q2b" src="https://github.com/user-attachments/assets/59042183-97d0-4949-83b6-a7079f4f4aa9" />
 <img width="1365" height="767" alt="screenshot4 q2c" src="https://github.com/user-attachments/assets/c17f4931-2844-4c83-9020-1321383f255a" />
 <img width="1365" height="767" alt="screenshot4 q4" src="https://github.com/user-attachments/assets/645608d2-edbd-4f4f-b73e-936da8003858" />
-
+<img width="1639" height="1286" alt="er_diagram" src="https://github.com/user-attachments/assets/ad96f17d-8160-418c-83f1-453710014a3a" />
+<img width="805" height="473" alt="ER2" src="https://github.com/user-attachments/assets/aa3263ff-f9e4-4b99-ab47-f8f6af918a03" />
 
 QUERIES:
 
